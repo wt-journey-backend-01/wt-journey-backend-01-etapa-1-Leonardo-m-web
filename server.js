@@ -12,20 +12,18 @@ app.use(express.urlencoded({extended: true}))
 //CODIGO REFERENTE A SUGESTÃO DE CARDÁPIO -- INICIO
 
 let sugestao = null
-let query = null
-let itens = null
 
 app.get('/' , (req, res)=>{
     
     res.send(`
         <div>
             <h3>Dê uma sugestão para o nosso cardapio</h3>
-            <form action="/" method="POST">
+            <form action="/sugestao" method="GET">
 
                 <label for="namef">Insira o nome da comida :</label>
                 <input type="text" id="namef" name="namef">
-                <label for="igredientes">Insira os igredientes dessa comida</label>
-                <input type="text" id="igredientes" name="igredientes">
+                <label for="ingredientes">Insira os ingredientes dessa comida</label>
+                <input type="text" id="ingredientes" name="ingredientes">
 
                 <button type="submit">Enviar</button>
             </form>
@@ -39,31 +37,22 @@ app.get('/' , (req, res)=>{
         `)
 })
 
-app.post('/' , (req, res)=>{
-    itens = req.body
 
-    sugestao = req.body
-    sugestao.namef = sugestao.namef.trim().replace(/\s+/g, '+')
-    sugestao.igredientes = sugestao.igredientes.trim().replace(/\s+/g, '+')
 
-    query = `/sugestao?nome=${sugestao.namef}&ingredientes=${sugestao.igredientes}`
-    res.redirect(`/sugestao?nome=${sugestao.namef}&ingredientes=${sugestao.igredientes}`)
-    
-    console.log(itens)
-})
+app.get('/sugestao' , (req, res)=>{
+    const { namef, ingredientes } = req.query;
 
-app.get(query , (req, res)=>{
-
-    if(!itens){
+    if(!namef || !ingredientes){
         return res.status(400).send('Nenhuma sugestão foi enviada ainda');
     }
 
-    const {namef, igredientes} = itens
+    const ingredientesFormatados = ingredientes.split(',').join('');
+
 
     res.send(`
         <h1> Muito obrigado pela sugestão </h1>
         <p> ${namef} </p>
-        <p> ${igredientes} </p>
+        <p> ${ingredientesFormatados} </p>
 
         <a href="http://localhost:${PORT}/">
             <div> voltar </div>
@@ -86,7 +75,7 @@ app.get('/contato', (req, res)=>{
             <input type="text" id="nome" name="nome">
 
             <label for="email">Insira o seu email :</label>
-            <input type="text" id="email" name="email">
+            <input type="email" id="email" name="email">
 
             <label for="assunto">Insira o assunto da mensagem :</label>
             <input type="text" id="assunto" name="assunto">
@@ -98,7 +87,7 @@ app.get('/contato', (req, res)=>{
             <button type="submit">Enviar</button>
         </form>
         
-        <a href="http://localhost:3000/">
+        <a href="http://localhost:${PORT}/">
             <div> voltar </div>
         </a>
     `)
@@ -106,12 +95,12 @@ app.get('/contato', (req, res)=>{
 
 app.post('/contato', (req,res) =>{
     contato = req.body
-    res.redirect('/cont_recebido')
-})
-
-app.get('/cont_recebido' , (req, res)=>{
-
     const {nome, email, assunto, mensagem} = contato
+
+    if(!nome || !email || !assunto || !mensagem){
+        return res.status(400).send('A mensagem não foi enviada');
+    }
+
     res.send(`
         <h2> Mensagem enviada com sucesso! Obrigado.</h2>
         <p>${nome}</p>
@@ -123,7 +112,9 @@ app.get('/cont_recebido' , (req, res)=>{
             <div> voltar </div>
         </a>
     `)
+    console.log(res.statusCode)
 })
+
 
 //CODIGO REFERENTE AOS CONTATOS -- FIM
 
